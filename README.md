@@ -116,6 +116,8 @@ The app features a vibrant Gen-Z aesthetic with:
 
 The `vercel.json` file is pre-configured for Next.js deployment.
 
+**Note:** This app uses Next.js dynamic routes and server-side features, so it requires a hosting platform that supports server-side rendering (like Vercel). Static hosting platforms (like GitHub Pages) are not compatible with this application.
+
 ### PWA Installation
 
 Users can install PubPal as a Progressive Web App on their mobile devices for a native app experience.
@@ -139,6 +141,21 @@ npm start
 ```bash
 npm run lint
 ```
+
+### Run Tests
+
+```bash
+npm test
+```
+
+### Continuous Integration
+
+The repository includes a GitHub Actions CI workflow that automatically:
+- Runs linting checks
+- Executes tests
+- Builds the project
+
+The CI workflow runs on pushes and pull requests to `main` and `develop` branches. Make sure to add your Supabase credentials as repository secrets (`NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY`) for the build step to work properly.
 
 ## 🗺️ API Integration
 
