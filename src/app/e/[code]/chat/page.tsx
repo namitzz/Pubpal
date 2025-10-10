@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { getSupabaseClient } from '@/lib/supabase';
 import { Event, ChatMessage } from '@/types';
+import EmojiPicker from '@/components/EmojiPicker';
 
 export default function ChatPage() {
   const params = useParams();
@@ -280,7 +281,8 @@ export default function ChatPage() {
           onSubmit={sendMessage}
           className="glass rounded-2xl p-4"
         >
-          <div className="flex gap-2">
+          <div className="flex gap-2 items-end">
+            <EmojiPicker onSelect={(emoji) => setNewMessage((prev) => prev + emoji)} />
             <input
               type="text"
               value={newMessage}
