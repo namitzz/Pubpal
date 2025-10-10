@@ -114,13 +114,44 @@ The app features a vibrant Gen-Z aesthetic with:
 3. Add environment variables in Vercel dashboard
 4. Deploy! ✨
 
-The `vercel.json` file is pre-configured for Next.js deployment.
+The `vercel.json` file is pre-configured for Next.js deployment. Alternatively, the app can now be deployed to GitHub Pages using the static export feature (configured in `next.config.mjs` with `output: "export"`).
 
-**Note:** This app uses Next.js dynamic routes and server-side features, so it requires a hosting platform that supports server-side rendering (like Vercel). Static hosting platforms (like GitHub Pages) are not compatible with this application.
+### Deploy to GitHub Pages
+
+The repository includes a GitHub Actions workflow (`.github/workflows/nextjs.yml`) that automatically builds and deploys to GitHub Pages on push to `main`. The static export pre-generates all routes defined in `src/data/codes.json`.
+
+To set up GitHub Pages deployment:
+
+1. Go to your repository Settings > Pages
+2. Set Source to "GitHub Actions"
+3. Push to `main` branch - deployment happens automatically
+4. Your site will be available at `https://<username>.github.io/<repo-name>/`
 
 ### PWA Installation
 
 Users can install PubPal as a Progressive Web App on their mobile devices for a native app experience.
+
+## 📄 Adding New Event or Team Pages to GitHub Pages
+
+To include a new event or team page in the static export (GitHub Pages deployment):
+
+1. Edit `src/data/codes.json`
+2. Add your event code to the `events` array or team code to the `teams` array:
+
+```json
+{
+  "events": ["demo", "revs", "grand-union", "oddbar", "katie", "your-new-event"],
+  "teams": ["alpha", "beta", "gamma", "your-new-team"]
+}
+```
+
+3. Commit and push to the `main` branch
+4. GitHub Actions will automatically build and deploy the pages
+5. Your new pages will be available at:
+   - Events: `/e/<your-event-code>`
+   - Teams: `/team/<your-team-code>`
+
+**Note:** The app uses static export with pre-generated routes from `codes.json`. Only codes listed in this file will be built and deployed to GitHub Pages.
 
 ## 🔧 Development
 
