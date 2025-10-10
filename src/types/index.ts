@@ -61,6 +61,7 @@ export interface ChatMessage {
   nickname: string;
   body?: string;
   attachment_url?: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   reactions: any[];
   created_at: string;
 }

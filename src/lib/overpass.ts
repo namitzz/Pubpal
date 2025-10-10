@@ -22,6 +22,7 @@ export async function fetchNearbyPubs(lat: number, lon: number, radius: number =
 
     const data = await response.json();
     
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return data.elements.map((element: any, index: number) => ({
       id: element.id || index,
       name: element.tags?.name || 'Unnamed Pub',

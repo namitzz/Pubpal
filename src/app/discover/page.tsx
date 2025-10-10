@@ -36,12 +36,12 @@ export default function DiscoverPage() {
             const nearbyPubs = await fetchNearbyPubs(latitude, longitude, 2000);
             setPubs(nearbyPubs);
             setLoading(false);
-          } catch (err) {
+          } catch {
             setError('Failed to fetch nearby pubs');
             setLoading(false);
           }
         },
-        (err) => {
+        () => {
           setError('Please enable location access to discover nearby pubs');
           setLoading(false);
         }
