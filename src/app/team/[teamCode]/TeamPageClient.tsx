@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { getSupabaseClient } from '@/lib/supabase';
 import { Team, Member, Score, Stop } from '@/types';
+import Tabs, { TabItem } from '@/components/Tabs';
 
 export default function TeamPage() {
   const params = useParams();
@@ -17,6 +18,7 @@ export default function TeamPage() {
   const [stops, setStops] = useState<Stop[]>([]);
   const [loading, setLoading] = useState(true);
   const [newMemberName, setNewMemberName] = useState('');
+  const [activeTab, setActiveTab] = useState('scorecard');
 
   const loadTeam = useCallback(async () => {
     try {
@@ -154,6 +156,153 @@ export default function TeamPage() {
   };
 
   const totalStrokes = scores.reduce((sum, score) => sum + score.strokes, 0);
+  const completedStops = scores.filter(s => s.strokes > 0).length;
+
+  // Prepare tabs
+  const tabs: TabItem[] = [
+    {
+      id: 'scorecard',
+      label: 'Scorecard',
+      icon: '⛳',
+      content: (
+        <div className="glass rounded-2xl p-4 sm:p-6">
+          {stops.length === 0 ? (
+            <div className="text-center py-8">
+              <p className="text-white/70 text-base mb-4">No stops added yet</p>
+              <p className="text-white/50 text-sm">The event organizer needs to add stops first</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {stops.map((stop, index) => (
+                <motion.div 
+                  key={stop.id} 
+                  className="glass-dark rounded-xl p-4 hover:bg-white/10 transition-all"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.05 }}
+                >
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="text-2xl sm:text-3xl font-bold text-white/50 min-w-[40px]">
+                      {index + 1}
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-base sm:text-lg font-semibold text-white">
+                        {stop.name}
+                      </h3>
+                      {stop.rule && (
+                        <p className="text-xs sm:text-sm text-white/70 mt-1">
+                          ⛳ {stop.rule}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="number"
+                      min="0"
+                      value={getScoreForStop(stop.id)}
+                      onChange={(e) => updateScore(stop.id, parseInt(e.target.value) || 0)}
+                      className="w-20 sm:w-24 px-3 py-2 text-center rounded-lg bg-white/20 text-white text-lg font-bold border border-white/30 focus:outline-none focus:ring-2 focus:ring-white/50"
+                    />
+                    <span className="text-white/70 text-sm">strokes</span>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          )}
+        </div>
+      )
+    },
+    {
+      id: 'members',
+      label: 'Members',
+      icon: '👥',
+      content: (
+        <div className="glass rounded-2xl p-4 sm:p-6">
+          <h3 className="text-xl font-bold text-white mb-4">Team Members</h3>
+          {members.length > 0 ? (
+            <div className="space-y-2 mb-4">
+              {members.map((member, index) => (
+                <motion.div 
+                  key={member.id} 
+                  className="glass-dark rounded-xl p-4 flex items-center gap-3"
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: index * 0.05 }}
+                >
+                  <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center text-xl">
+                    👤
+                  </div>
+                  <p className="text-white font-semibold text-base">{member.nickname}</p>
+                </motion.div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8 mb-4">
+              <p className="text-white/70 text-base">No members yet</p>
+              <p className="text-white/50 text-sm mt-2">Add your first team member below</p>
+            </div>
+          )}
+          <form onSubmit={addMember} className="space-y-3">
+            <input
+              type="text"
+              value={newMemberName}
+              onChange={(e) => setNewMemberName(e.target.value)}
+              placeholder="Enter member name..."
+              className="w-full px-4 py-3 rounded-xl bg-white/20 text-white placeholder-white/50 border border-white/30 focus:outline-none focus:ring-2 focus:ring-white/50 text-base"
+            />
+            <button
+              type="submit"
+              className="w-full py-3 bg-white text-purple-600 rounded-xl font-semibold hover:bg-white/90 transition-all hover:scale-105 active:scale-95 text-base"
+            >
+              + Add Member
+            </button>
+          </form>
+        </div>
+      )
+    },
+    {
+      id: 'info',
+      label: 'Info',
+      icon: 'ℹ️',
+      content: (
+        <div className="glass rounded-2xl p-4 sm:p-6 space-y-4">
+          <div className="glass-dark rounded-xl p-4">
+            <h3 className="text-lg font-bold text-white mb-3">Team Details</h3>
+            <div className="space-y-2">
+              <div className="flex justify-between items-center">
+                <span className="text-white/70 text-sm">Team Name</span>
+                <span className="text-white font-semibold">{team?.name}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-white/70 text-sm">Join Code</span>
+                <span className="text-white font-bold bg-white/20 px-3 py-1 rounded-lg">{team?.join_code}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-white/70 text-sm">Members</span>
+                <span className="text-white font-semibold">{members.length}</span>
+              </div>
+            </div>
+          </div>
+          
+          <div className="glass-dark rounded-xl p-4">
+            <h3 className="text-lg font-bold text-white mb-3">Quick Actions</h3>
+            <div className="space-y-2">
+              <button className="w-full py-3 bg-white/20 text-white rounded-xl hover:bg-white/30 transition-all hover:scale-105 active:scale-95 text-sm sm:text-base">
+                💬 Team Chat
+              </button>
+              <button 
+                onClick={() => setActiveTab('scorecard')}
+                className="w-full py-3 bg-white/20 text-white rounded-xl hover:bg-white/30 transition-all hover:scale-105 active:scale-95 text-sm sm:text-base"
+              >
+                ⛳ View Scorecard
+              </button>
+            </div>
+          </div>
+        </div>
+      )
+    }
+  ];
 
   if (loading) {
     return (
@@ -181,122 +330,66 @@ export default function TeamPage() {
   }
 
   return (
-    <main className="min-h-screen bg-gradient-party p-4">
-      <div className="max-w-6xl mx-auto pt-8">
-        {/* Header */}
+    <main className="min-h-screen bg-gradient-party p-4 sm:p-6">
+      <div className="max-w-5xl mx-auto pt-4 sm:pt-8 pb-8">
+        {/* Header with Stats */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-8"
+          className="mb-6"
         >
-          <div className="glass rounded-2xl p-6">
-            <h1 className="text-4xl font-bold text-white mb-2">
-              👥 {team.name}
-            </h1>
-            <p className="text-white/80">
-              🎫 Join Code: <span className="font-bold text-white">{team.join_code}</span>
-            </p>
-            <p className="text-white/80 mt-2">
-              ⛳ Total Strokes: <span className="font-bold text-white text-2xl">{totalStrokes}</span>
-            </p>
+          <Link href="/">
+            <button className="mb-4 px-4 py-2 glass rounded-xl text-white hover:bg-white/20 transition-all hover:scale-105 active:scale-95 text-sm sm:text-base">
+              ← Back
+            </button>
+          </Link>
+          
+          <div className="glass rounded-2xl p-4 sm:p-6">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4">
+              <div>
+                <h1 className="text-3xl sm:text-4xl font-bold text-white mb-2">
+                  👥 {team.name}
+                </h1>
+                <p className="text-white/80 text-sm sm:text-base">
+                  🎫 Code: <span className="font-bold text-white">{team.join_code}</span>
+                </p>
+              </div>
+            </div>
+
+            {/* Stats Cards */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+              <div className="glass-dark rounded-xl p-3 sm:p-4 text-center">
+                <div className="text-2xl sm:text-3xl font-bold text-white">{totalStrokes}</div>
+                <div className="text-xs sm:text-sm text-white/70 mt-1">Total Strokes</div>
+              </div>
+              <div className="glass-dark rounded-xl p-3 sm:p-4 text-center">
+                <div className="text-2xl sm:text-3xl font-bold text-white">{completedStops}</div>
+                <div className="text-xs sm:text-sm text-white/70 mt-1">Completed</div>
+              </div>
+              <div className="glass-dark rounded-xl p-3 sm:p-4 text-center">
+                <div className="text-2xl sm:text-3xl font-bold text-white">{stops.length}</div>
+                <div className="text-xs sm:text-sm text-white/70 mt-1">Total Stops</div>
+              </div>
+              <div className="glass-dark rounded-xl p-3 sm:p-4 text-center">
+                <div className="text-2xl sm:text-3xl font-bold text-white">{members.length}</div>
+                <div className="text-xs sm:text-sm text-white/70 mt-1">Members</div>
+              </div>
+            </div>
           </div>
         </motion.div>
 
-        <div className="grid lg:grid-cols-3 gap-6">
-          {/* Scorecard */}
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.2 }}
-            className="lg:col-span-2"
-          >
-            <div className="glass rounded-2xl p-6">
-              <h2 className="text-2xl font-bold text-white mb-4">⛳ Scorecard</h2>
-              {stops.length === 0 ? (
-                <p className="text-white/70">No stops added yet</p>
-              ) : (
-                <div className="space-y-3">
-                  {stops.map((stop, index) => (
-                    <div key={stop.id} className="glass-dark rounded-xl p-4">
-                      <div className="flex items-center gap-3 mb-3">
-                        <div className="text-2xl font-bold text-white/50">
-                          {index + 1}
-                        </div>
-                        <div className="flex-1">
-                          <h3 className="text-lg font-semibold text-white">
-                            {stop.name}
-                          </h3>
-                          {stop.rule && (
-                            <p className="text-sm text-white/70">
-                              ⛳ {stop.rule}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="number"
-                          min="0"
-                          value={getScoreForStop(stop.id)}
-                          onChange={(e) => updateScore(stop.id, parseInt(e.target.value) || 0)}
-                          className="w-24 px-3 py-2 rounded-lg bg-white/20 text-white border border-white/30 focus:outline-none focus:ring-2 focus:ring-white/50"
-                        />
-                        <span className="text-white/70">strokes</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </motion.div>
-
-          {/* Sidebar */}
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.3 }}
-            className="space-y-6"
-          >
-            {/* Members */}
-            <div className="glass rounded-2xl p-6">
-              <h2 className="text-2xl font-bold text-white mb-4">Team Members</h2>
-              {members.length > 0 && (
-                <div className="space-y-2 mb-4">
-                  {members.map((member) => (
-                    <div key={member.id} className="glass-dark rounded-xl p-3">
-                      <p className="text-white font-semibold">{member.nickname}</p>
-                    </div>
-                  ))}
-                </div>
-              )}
-              <form onSubmit={addMember} className="flex gap-2">
-                <input
-                  type="text"
-                  value={newMemberName}
-                  onChange={(e) => setNewMemberName(e.target.value)}
-                  placeholder="Add member..."
-                  className="flex-1 px-3 py-2 rounded-lg bg-white/20 text-white placeholder-white/50 border border-white/30 focus:outline-none focus:ring-2 focus:ring-white/50 text-sm"
-                />
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-white/20 text-white rounded-lg hover:bg-white/30 transition-colors text-sm"
-                >
-                  +
-                </button>
-              </form>
-            </div>
-
-            {/* Actions */}
-            <div className="glass rounded-2xl p-6">
-              <h2 className="text-xl font-bold text-white mb-4">Actions</h2>
-              <div className="space-y-2">
-                <button className="w-full py-2 bg-white/20 text-white rounded-xl hover:bg-white/30 transition-colors text-sm">
-                  💬 Team Chat
-                </button>
-              </div>
-            </div>
-          </motion.div>
-        </div>
+        {/* Tabbed Content */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+        >
+          <Tabs 
+            tabs={tabs} 
+            activeTab={activeTab} 
+            onTabChange={setActiveTab}
+          />
+        </motion.div>
       </div>
     </main>
   );
