@@ -1,11 +1,9 @@
 'use client';
 
-import { useState } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 
 export default function Home() {
-  const [joinCode, setJoinCode] = useState('');
 
   return (
     <main className="min-h-screen bg-gradient-party p-4 sm:p-6 md:p-8">
@@ -48,35 +46,25 @@ export default function Home() {
             </Link>
           </motion.div>
 
-          {/* Join Event Card */}
+          {/* View Event Card */}
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6, delay: 0.3 }}
-            className="glass rounded-2xl p-6 sm:p-8"
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.98 }}
           >
-            <div className="text-4xl sm:text-5xl mb-4">🔗</div>
-            <h2 className="text-xl sm:text-2xl font-bold text-white mb-4">
-              Join Event
-            </h2>
-            <div className="flex flex-col sm:flex-row gap-2">
-              <input
-                type="text"
-                placeholder="Enter code..."
-                value={joinCode}
-                onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
-                className="flex-1 px-4 py-3 rounded-xl bg-white/20 text-white placeholder-white/50 border border-white/30 focus:outline-none focus:ring-2 focus:ring-white/50 transition-all text-base"
-                maxLength={6}
-              />
-              <Link href={joinCode ? `/e/${joinCode}` : '#'}>
-                <button
-                  disabled={!joinCode}
-                  className="w-full sm:w-auto px-6 py-3 bg-white text-purple-600 rounded-xl font-semibold hover:bg-white/90 transition-all hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
-                >
-                  Join
-                </button>
-              </Link>
-            </div>
+            <Link href="/event">
+              <div className="glass rounded-2xl p-6 sm:p-8 hover:bg-white/20 transition-all cursor-pointer h-full">
+                <div className="text-4xl sm:text-5xl mb-4">🍻</div>
+                <h2 className="text-xl sm:text-2xl font-bold text-white mb-2">
+                  View My Event
+                </h2>
+                <p className="text-white/80 text-sm sm:text-base">
+                  Manage stops, teams and scoreboard
+                </p>
+              </div>
+            </Link>
           </motion.div>
         </div>
 

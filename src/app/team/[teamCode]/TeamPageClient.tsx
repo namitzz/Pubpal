@@ -1,11 +1,21 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { getSupabaseClient } from '@/lib/supabase';
-import { Team, Member, Score, Stop } from '@/types';
+import { 
+  getTeamByCode, 
+  getMembers, 
+  addMember, 
+  getStops, 
+  getScores, 
+  updateScore,
+  type Team,
+  type Member,
+  type Stop,
+  type Score
+} from '@/lib/storage';
 import Tabs, { TabItem } from '@/components/Tabs';
 
 export default function TeamPage() {
@@ -20,93 +30,38 @@ export default function TeamPage() {
   const [newMemberName, setNewMemberName] = useState('');
   const [activeTab, setActiveTab] = useState('scorecard');
 
-  const loadTeam = useCallback(async () => {
+  const loadTeam = () => {
     try {
-      const supabase = getSupabaseClient();
-      if (!supabase) {
-        setLoading(false);
-        return;
-      }
-
-      // Fetch team
-      const { data: teamData, error: teamError } = await supabase
-        .from('teams')
-        .select('*')
-        .eq('join_code', teamCode)
-        .single();
-
-      if (teamError) {
-        console.error('Team not found:', teamError);
+      const teamData = getTeamByCode(teamCode);
+      
+      if (!teamData) {
+        console.error('Team not found');
         setLoading(false);
         return;
       }
 
       setTeam(teamData);
-
-      // Fetch members
-      const { data: membersData } = await supabase
-        .from('members')
-        .select('*')
-        .eq('team_id', teamData.id);
-
-      setMembers(membersData || []);
-
-      // Fetch event data
-      const { data: eventData } = await supabase
-        .from('events')
-        .select('join_code')
-        .eq('id', teamData.event_id)
-        .single();
-
-      if (eventData) {
-        // Fetch stops
-        const { data: stopsData } = await supabase
-          .from('stops')
-          .select('*')
-          .eq('event_id', teamData.event_id)
-          .order('order_index');
-
-        setStops(stopsData || []);
-
-        // Fetch scores
-        const { data: scoresData } = await supabase
-          .from('scores')
-          .select('*')
-          .eq('team_id', teamData.id);
-
-        setScores(scoresData || []);
-      }
-
+      setMembers(getMembers(teamData.id));
+      setStops(getStops());
+      setScores(getScores(teamData.id));
       setLoading(false);
     } catch (error) {
       console.error('Error loading team:', error);
       setLoading(false);
     }
-  }, [teamCode]);
+  };
 
   useEffect(() => {
     loadTeam();
-  }, [loadTeam]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [teamCode]);
 
-  const addMember = async (e: React.FormEvent) => {
+  const handleAddMember = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newMemberName.trim() || !team) return;
 
     try {
-      const supabase = getSupabaseClient();
-      if (!supabase) return;
-
-      const { error } = await supabase
-        .from('members')
-        .insert([
-          {
-            team_id: team.id,
-            nickname: newMemberName.trim(),
-          },
-        ]);
-
-      if (error) throw error;
-
+      addMember(team.id, newMemberName.trim());
       setNewMemberName('');
       loadTeam();
     } catch (error) {
@@ -115,35 +70,11 @@ export default function TeamPage() {
     }
   };
 
-  const updateScore = async (stopId: string, strokes: number) => {
+  const handleUpdateScore = (stopId: string, strokes: number) => {
     if (!team) return;
 
     try {
-      const supabase = getSupabaseClient();
-      if (!supabase) return;
-
-      const { data: eventData } = await supabase
-        .from('teams')
-        .select('event_id')
-        .eq('id', team.id)
-        .single();
-
-      if (!eventData) return;
-
-      // Upsert score
-      const { error } = await supabase
-        .from('scores')
-        .upsert([
-          {
-            event_id: eventData.event_id,
-            team_id: team.id,
-            stop_id: stopId,
-            strokes: strokes,
-          },
-        ]);
-
-      if (error) throw error;
-
+      updateScore(team.id, stopId, strokes);
       loadTeam();
     } catch (error) {
       console.error('Error updating score:', error);
@@ -201,7 +132,7 @@ export default function TeamPage() {
                       type="number"
                       min="0"
                       value={getScoreForStop(stop.id)}
-                      onChange={(e) => updateScore(stop.id, parseInt(e.target.value) || 0)}
+                      onChange={(e) => handleUpdateScore(stop.id, parseInt(e.target.value) || 0)}
                       className="w-20 sm:w-24 px-3 py-2 text-center rounded-lg bg-white/20 text-white text-lg font-bold border border-white/30 focus:outline-none focus:ring-2 focus:ring-white/50"
                     />
                     <span className="text-white/70 text-sm">strokes</span>
@@ -243,7 +174,7 @@ export default function TeamPage() {
               <p className="text-white/50 text-sm mt-2">Add your first team member below</p>
             </div>
           )}
-          <form onSubmit={addMember} className="space-y-3">
+          <form onSubmit={handleAddMember} className="space-y-3">
             <input
               type="text"
               value={newMemberName}
@@ -288,15 +219,17 @@ export default function TeamPage() {
           <div className="glass-dark rounded-xl p-4">
             <h3 className="text-lg font-bold text-white mb-3">Quick Actions</h3>
             <div className="space-y-2">
-              <button className="w-full py-3 bg-white/20 text-white rounded-xl hover:bg-white/30 transition-all hover:scale-105 active:scale-95 text-sm sm:text-base">
-                💬 Team Chat
-              </button>
               <button 
                 onClick={() => setActiveTab('scorecard')}
                 className="w-full py-3 bg-white/20 text-white rounded-xl hover:bg-white/30 transition-all hover:scale-105 active:scale-95 text-sm sm:text-base"
               >
                 ⛳ View Scorecard
               </button>
+              <Link href="/event">
+                <button className="w-full py-3 bg-white/20 text-white rounded-xl hover:bg-white/30 transition-all hover:scale-105 active:scale-95 text-sm sm:text-base">
+                  🏆 View Leaderboard
+                </button>
+              </Link>
             </div>
           </div>
         </div>

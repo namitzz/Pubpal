@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { getSupabaseClient, generateJoinCode } from '@/lib/supabase';
+import { saveEvent, getEvent } from '@/lib/storage';
 
 export default function NewEventPage() {
   const router = useRouter();
@@ -22,13 +22,6 @@ export default function NewEventPage() {
     setLoading(true);
 
     try {
-      const supabase = getSupabaseClient();
-      if (!supabase) {
-        alert('⚠️ Database not configured. Please add your Supabase credentials to .env.local file.');
-        setLoading(false);
-        return;
-      }
-
       // Validate form data
       if (!formData.name.trim() || !formData.city.trim() || !formData.owner.trim()) {
         alert('⚠️ Please fill in all required fields.');
@@ -36,42 +29,33 @@ export default function NewEventPage() {
         return;
       }
 
-      const joinCode = generateJoinCode();
-      
-      const { data: event, error } = await supabase
-        .from('events')
-        .insert([
-          {
-            ...formData,
-            join_code: joinCode,
-          },
-        ])
-        .select()
-        .single();
-
-      if (error) {
-        console.error('Database error:', error);
-        throw new Error(error.message || 'Failed to create event');
+      // Check if an event already exists
+      const existingEvent = getEvent();
+      if (existingEvent) {
+        const confirmReplace = confirm(
+          '⚠️ An event already exists. Creating a new event will replace the existing one. Continue?'
+        );
+        if (!confirmReplace) {
+          setLoading(false);
+          return;
+        }
       }
 
-      // Create default chat room for the event
-      const { error: chatError } = await supabase.from('chat_rooms').insert([
-        {
-          event_id: event.id,
-          name: 'Event Chat',
-        },
-      ]);
+      // Save event to localStorage
+      saveEvent({
+        name: formData.name.trim(),
+        city: formData.city.trim(),
+        date: formData.date,
+        start_time: formData.start_time,
+        owner: formData.owner.trim(),
+      });
 
-      if (chatError) {
-        console.error('Chat room creation error:', chatError);
-        // Continue anyway since event was created
-      }
-
-      router.push(`/e/${joinCode}`);
+      // Navigate to the event page
+      router.push('/event');
     } catch (error) {
       console.error('Error creating event:', error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-      alert(`❌ Failed to create event: ${errorMessage}\n\nPlease check your database configuration.`);
+      alert(`❌ Failed to create event: ${errorMessage}`);
       setLoading(false);
     }
   };

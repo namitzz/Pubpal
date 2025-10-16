@@ -1,37 +1,36 @@
-# 🍻 PubPal - Pub Golf Crawl & Party Chat App
+# 🍻 PubPal - Pub Golf Crawl Manager
 
-A full-stack web app that helps friends plan and play pub golf bar crawls with real-time chat, scoring, and nearby pub discovery.
+A simple, single-event pub golf crawl manager that helps you organize bar stops, create teams, and maintain a scoreboard - all stored locally in your browser!
 
-![Next.js](https://img.shields.io/badge/Next.js-14-black)
+![Next.js](https://img.shields.io/badge/Next.js-15-black)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5-blue)
 ![TailwindCSS](https://img.shields.io/badge/TailwindCSS-3-38bdf8)
-![Supabase](https://img.shields.io/badge/Supabase-Powered-3ecf8e)
+![LocalStorage](https://img.shields.io/badge/Storage-Browser-green)
 
 ## ✨ Features
 
 - 🗺️ **Discover Nearby Pubs** - Find pubs and bars using geolocation & OpenStreetMap/Overpass API
-- 🎉 **Create/Join Events** - Auto-generated join codes and shareable links
-- 👥 **Team Management** - Create teams with unique join codes
-- ⛳ **Pub Golf Rules** - Set custom rules for each stop (drink type, strokes, dares)
-- 🏆 **Live Leaderboard** - Real-time scoring and rankings
-- 💬 **Group Chat** - Real-time chat with image uploads and emoji reactions
+- 🎉 **Create Event** - Simple event creation for your pub crawl
+- 🍺 **Manage Bar Stops** - Add and organize pub stops with custom rules
+- 👥 **Team Management** - Create multiple teams with unique join codes
+- ⛳ **Score Tracking** - Track scores for each team at every stop
+- 🏆 **Live Leaderboard** - See rankings updated as scores are entered
 - 📱 **Mobile-First PWA** - Works perfectly on iPhone and Android, installable as PWA
 - 🎨 **Gen-Z UI** - Bright gradients, glassmorphism, playful emojis, smooth animations
+- 💾 **No Database Required** - Everything stored in browser localStorage
 
 ## 🛠️ Tech Stack
 
-- **Frontend:** Next.js 14 (App Router), TypeScript, TailwindCSS, Framer Motion
+- **Frontend:** Next.js 15 (App Router), TypeScript, TailwindCSS, Framer Motion
 - **Maps:** Leaflet + React Leaflet for interactive maps
-- **Backend/DB:** Supabase (Auth, Postgres, Realtime, Storage)
-- **Realtime:** Supabase Realtime Channels for chat
-- **Deploy:** Vercel (auto-deploy from GitHub)
+- **Storage:** Browser localStorage (no backend required)
+- **Deploy:** Vercel or any static hosting
 
 ## 🚀 Quick Start
 
 ### Prerequisites
 
 - Node.js 18+ installed
-- A Supabase account (free tier works great)
 - Git
 
 ### 1. Clone the Repository
@@ -47,24 +46,7 @@ cd Pubpal
 npm install
 ```
 
-### 3. Set Up Supabase
-
-1. Create a new project at [supabase.com](https://supabase.com)
-2. Go to Project Settings > API to find your credentials
-3. Go to SQL Editor and run the schema from `supabase-schema.sql`
-
-### 4. Configure Environment Variables
-
-Create a `.env.local` file in the root directory:
-
-```env
-NEXT_PUBLIC_SUPABASE_URL=your-project-url.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
-```
-
-See `.env.example` for reference.
-
-### 5. Run Development Server
+### 3. Run Development Server
 
 ```bash
 npm run dev
@@ -72,27 +54,27 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000) to see the app! 🎉
 
-## 📊 Database Schema
+**That's it!** No database setup, no environment variables - just install and run!
 
-The app uses the following Supabase tables:
+## 📊 How It Works
 
-- **events** - Pub crawl events with join codes
-- **teams** - Teams participating in events
-- **members** - Team members
-- **stops** - Pub stops in the crawl with custom rules
-- **scores** - Team scores at each stop
-- **chat_rooms** - Chat rooms for events/teams
-- **chat_messages** - Real-time chat messages
+All data is stored in your browser's localStorage:
 
-See `supabase-schema.sql` for the complete schema with indexes and RLS policies.
+- **Event** - Single event details (name, date, location, organizer)
+- **Stops** - List of pub/bar stops with custom rules
+- **Teams** - Multiple teams with unique join codes
+- **Members** - Team members
+- **Scores** - Score tracking for each team at each stop
 
 ## 📱 Core Pages
 
-- `/` - Home (Create Event, Join Event, Discover Pubs)
+- `/` - Home (Create Event, View Event, Discover Pubs)
 - `/discover` - Interactive map of nearby pubs
 - `/event/new` - Create a new pub crawl event
-- `/e/[code]` - Event hub (stops, teams, leaderboard, chat)
-- `/team/[teamCode]` - Team view with scorecard
+- `/event` - Event hub (stops, teams, leaderboard)
+- `/stops` - Manage bar stops
+- `/team/new` - Create a new team
+- `/team/[teamCode]` - Team view with scorecard and member management
 
 ## 🎨 Styling
 
@@ -111,47 +93,35 @@ The app features a vibrant Gen-Z aesthetic with:
 
 1. Push your code to GitHub
 2. Import your repo on [vercel.com](https://vercel.com)
-3. Add environment variables in Vercel dashboard
-4. Deploy! ✨
-
-The `vercel.json` file is pre-configured for Next.js deployment. Alternatively, the app can now be deployed to GitHub Pages using the static export feature (configured in `next.config.mjs` with `output: "export"`).
-
-### Deploy to GitHub Pages
-
-The repository includes a GitHub Actions workflow (`.github/workflows/nextjs.yml`) that automatically builds and deploys to GitHub Pages on push to `main`. The static export pre-generates all routes defined in `src/data/codes.json`.
-
-To set up GitHub Pages deployment:
-
-1. Go to your repository Settings > Pages
-2. Set Source to "GitHub Actions"
-3. Push to `main` branch - deployment happens automatically
-4. Your site will be available at `https://<username>.github.io/<repo-name>/`
+3. Deploy! ✨ (No environment variables needed)
 
 ### PWA Installation
 
 Users can install PubPal as a Progressive Web App on their mobile devices for a native app experience.
 
-## 📄 Adding New Event or Team Pages to GitHub Pages
+## 💡 Usage Guide
 
-To include a new event or team page in the static export (GitHub Pages deployment):
+### For Event Organizers
 
-1. Edit `src/data/codes.json`
-2. Add your event code to the `events` array or team code to the `teams` array:
+1. **Create Event** - Fill in your event details (name, date, city)
+2. **Add Stops** - Add pub/bar stops with custom rules (e.g., "Order a pint, 5 strokes")
+3. **Share Team Codes** - Create teams and share the join codes with participants
+4. **View Leaderboard** - Watch the competition unfold in real-time
 
-```json
-{
-  "events": ["demo", "revs", "grand-union", "oddbar", "katie", "your-new-event"],
-  "teams": ["alpha", "beta", "gamma", "your-new-team"]
-}
-```
+### For Participants
 
-3. Commit and push to the `main` branch
-4. GitHub Actions will automatically build and deploy the pages
-5. Your new pages will be available at:
-   - Events: `/e/<your-event-code>`
-   - Teams: `/team/<your-team-code>`
+1. **Join a Team** - Get the team code from your organizer
+2. **Track Scores** - Enter your scores at each stop
+3. **Add Members** - Add your team members to the roster
+4. **Check Leaderboard** - See how your team ranks
 
-**Note:** The app uses static export with pre-generated routes from `codes.json`. Only codes listed in this file will be built and deployed to GitHub Pages.
+## 🔒 Data Privacy
+
+All data is stored locally in your browser:
+- No data is sent to external servers
+- No account creation required
+- Data persists until you clear browser storage
+- Each user/browser has their own data
 
 ## 🔧 Development
 
@@ -172,21 +142,6 @@ npm start
 ```bash
 npm run lint
 ```
-
-### Run Tests
-
-```bash
-npm test
-```
-
-### Continuous Integration
-
-The repository includes a GitHub Actions CI workflow that automatically:
-- Runs linting checks
-- Executes tests
-- Builds the project
-
-The CI workflow runs on pushes and pull requests to `main` and `develop` branches. Make sure to add your Supabase credentials as repository secrets (`NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY`) for the build step to work properly.
 
 ## 🗺️ API Integration
 
